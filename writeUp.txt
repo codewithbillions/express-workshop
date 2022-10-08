@@ -1,0 +1,432 @@
+to get stated with express have Node installed.
+
+run npm init -y
+this command wiil set up a json package forr you. package.json
+
+then install express library 
+npm i express
+
+then nodemon 
+which helps us easily restart our server anytime we make changes
+npm i --save-dev nodemon
+
+>> in package.json
+  "scripts": {
+    "devStart": "nodemon server.js"
+  },
+
+then create a server.js file
+
+>> nodemon server.js
+
+in the terminal
+
+>> server.js file
+run console.log('hello world');
+-------------------------------------
+>>server.js file
+
+const express = require("express");
+
+const app = express(); // creating an app
+
+app.listen(3000); listen on port 3000
+
+check your browser you see cannot get /
+because you have not set up the router.
+
+1) "/" is the path. 
+2) (req,res,next) are functions taking three parameters
+3) res.send is what you want to sent back to the user.
+ app.get("/", (req, res, next) => {
+    console.log('here')
+    res.send('Hi')
+});
+4) res.sendStatus(500) is the status code. which is internal server err.
+comment res.send and check your browser
+
+app.get("/", (req, res, next) => {
+    console.log('here')
+    res.sendStatus(500)
+});
+
+check your browser and inspect it
+>>
+Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+
+app.get("/", (req, res, next) => {
+    console.log('here')
+    res.sendStatus(500).send('Hi')
+});
+
+app.get("/", (req, res, next) => {
+    console.log('here')
+    res.sendStatus(500).json({ message: "Error"})
+});
+
+app.get("/", (req, res, next) => {
+    console.log('here')
+    res.json({ message : "Error"})
+});
+
+for download 
+res.download(path) and the path to the file you want the user to download
+
+app.get("/", (req, res, next) => {
+    console.log('here')
+    res.download('server.js')
+    res.json({ message : "Error"}
+});
+........................................
+
+most times we will be rendering our html files
+
+app.get("/", (req, res, next) => {
+    console.log('here')
+   res.render('index')
+});
+
+create a folder called views
+>> index.html
+
+check you browser you get this Error!
+
+Error: No default engine was specified and no extension was provided.
+
+you got this error because you do not have a view engine set up
+
+npm i ejs
+
+tell our application to use our view engine
+
+app.set('view engine', 'ejs');
+
+then rename your file to have the ejs extension index.ejs
+
+<body>
+    <%= 2+2%>
+</body>
+
+app.get("/", (req, res, next) => {
+    console.log('here')
+   res.render('index', {text: "world"})
+});
+ -----------------------------------------
+<body>
+ Hello   <%= text%>
+</body>
+
+<body>
+ Hello   <%= locals.text || 'default' %>
+</body>
+---------------------------------------
+app.get("/users", (req, res, next) => {
+   res.send('User list')
+});
+
+app.get("/users/new", (req, res, next) => {
+   res.send('User New Form')
+});
+
+
+to make our code cleaner we cant have all our routes here in the server.js file
+
+>> create a folder called routes
+create a file called users.js
+
+then copy all our user routes and paste in the users.js
+>>
+
+const express = require('express');
+const router = express.Router();
+
+app.get("/users", (req, res) => {
+    res.send('User list')
+ });
+ 
+ app.get("/users/new", (req, res) => {
+    res.send('User New Form')
+ });
+
+replace the app with router middleware
+ and /users with '/' since users is the root folder here.
+
+const express = require('express');
+const router = express.Router();
+
+router.get("/", (req, res) => {
+    res.send('User list')
+ });
+ 
+ router.get("/new", (req, res) => {
+    res.send('User New Form')
+ });
+ ---------------------------------
+ then we expert our router
+ module.exports = router
+
+ ---------------------------------
+ in our server.js
+
+ const userRouter = require("./routes/users");
+
+app.use('/users', userRouter);
+
+anything that starts with '/users' add the userRouter at end of it.
+
+---------------------------------
+
+
+router.get("/:id", (req, res) => {
+    res.send(`Get User with ID ${req.params.id}`);
+  });
+http://localhost:3000/users/6588
+
+see for yourself
+
+const express = require("express");
+const router = express.Router();
+
+router.get("/", (req, res) => {
+  res.send("User list");
+});
+
+router.post("/", (req, res) => {
+  res.send("Create User");
+});
+
+
+router.get("/:id", (req, res) => {
+    res.send(`Get User with ID ${req.params.id}`);
+  });
+
+router.get("/new", (req, res) => {
+  res.send("User New Form");
+});
+
+module.exports = router;
+
+put the /new routes under the /:id route it will also render dynamically because express works synchronously from top to buttom
+try the code above 
+
+so make sure you have the static routes above before the dynamic routes.
+
+--------------------------------------
+const express = require("express");
+const router = express.Router();
+
+router.get("/", (req, res) => {
+  res.send("User list");
+});
+
+router.get("/new", (req, res) => {
+  res.send("User New Form");
+});
+
+router.post("/", (req, res) => {
+  res.send("Create User");
+});
+
+
+router.get("/:id", (req, res) => {
+    res.send(`Get User with ID ${req.params.id}`);
+  });
+
+router.put("/:id", (req, res) => {
+    res.send(`Update User with ID ${req.params.id}`);
+  });
+
+router.delete("/:id", (req, res) => {
+    res.send(`Delete User with ID ${req.params.id}`);
+  });
+
+module.exports = router;
+
+to make our router(/:id) better
+
+router
+.route('/:id')
+    .get((req, res) => {
+        res.send(`Get User with ID ${req.params.id}`);
+    })
+    .put((req, res) => {
+        res.send(`Update User with ID ${req.params.id}`);
+    })
+    .delete((req, res) => {
+        res.send(`Delete User with ID ${req.params.id}`);
+    })
+to clean you code alittle bit
+
+another function i want to talk about is router.param
+the function is going to run whenever it finds a name that you pass in.
+
+router.param('id', (req, res, next, id) => {
+    console.log(id);
+})
+
+this is a type of middleware 
+it run between the request being sent to a server and the actual response.
+
+check your browser after you make this request
+http://localhost:3000/users/6588
+it keeps load like in an infinite loop
+to solve it we it to call the next()
+
+router.param('id', (req, res, next, id) => {
+    console.log(id);
+    next();
+})
+-----------------------------------
+middleware runs at the starting of the request and the ending of the request.
+app.use(logger)
+
+function logger(req, res, next) {
+  console.log(req.originalUrl);
+  next();
+}
+
+if you put the app.user(logger) below other request it wont work for all the routes because express is synchronous.. reads the code from the top.
+
+const express = require("express");
+const app = express();
+
+app.set("view engine", "ejs");
+app.use(logger);
+
+app.get("/", (req, res) => {
+  res.render("index", { text: "World" });
+});
+
+const userRouter = require("./routes/users");
+
+app.use("/users", userRouter);
+
+function logger(req, res, next) {
+  console.log(req.originalUrl);
+  next();
+}
+
+app.listen(3000);
+
+manipulate the logger in anyway possible. also use it in the user route
+
+router.use(logger)
+
+function logger(req, res, next) {
+  console.log(req.originalUrl);
+  next();
+}
+---------------------------
+
+now lets serve a static folder using inbuilt middleware
+ create a public folder
+ change the index.ejs to index.html
+ move index.html to the public folder
+ say hello world in html
+
+ >>change your server.js to this
+
+const express = require("express");
+const app = express();
+
+app.use(express.static('public'));
+
+const userRouter = require("./routes/users");
+
+app.use("/users", userRouter);
+
+app.listen(3000);
+----------------------------
+create a test folder in the public
+inside the test folder create a tt.html
+write a radom word in the body of the html
+dsmvvz,dah,as,bvdhsfbk
+
+http://localhost:3000/test/tt.html
+------------------------------------
+>> create folder
+users/new.js in views folder
+
+ <form action="/users" method="post">
+      <label
+        >First Name
+        <input type="text" name="firstName" value="<%= locals.firstName %>" />
+      </label>
+      <button type="submit">Submit</button>
+    </form>
+
+add this to user.js
+
+router.get("/new", (req, res) => {
+  res.render("users/new", { firstName: "Test" });
+});
+
+check your browser
+-------------------------
+const { request } = require("express");
+const express = require("express");
+const router = express.Router();
+
+router.use(logger);
+router.get("/", (req, res) => {
+  res.send("User list");
+});
+
+router.get("/new", (req, res) => {
+  res.render("users/new");
+});
+
+router.post("/", (req, res) => {
+  res.send("create a new user");
+});
+
+now lets try to request for the body of the post request
+
+this is where we got the first name from
+<input type="text" name="firstName"
+
+router.post("/", (req, res) => {
+  console.log(req.body.firstName);
+  res.send("HI");
+});
+
+we will see an error
+
+TypeError: Cannot read properties of undefined (reading 'firstName')
+
+this is because by default express did not allow you to access the body.
+we have to use a middleware to do that for us.
+
+in our server
+app.use(express.urlencoded( {extended: true }))
+
+this allows us to access information coming from forms
+
+try it again in your browser
+
+router.post("/", (req, res) => {
+    const isValid = true
+    if (isValid) {
+        users.push({ firstName: req.body.firstName})
+        res.redirect(`/users/${users.length - 1}`)
+        }else {
+            console.log('Error')
+            res.render('users/new', {firstName: req.body.firstName})
+        }
+  res.send("HI");
+});
+
+try the code 
+also change isValid to false
+
+for json file fetching 
+app.use(express.json())
+
+--------------------
+add query to the list
+
+
+router.get("/", (req, res) => {
+  console.log(req.query.name)
+  res.send("User list");
+});
